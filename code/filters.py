@@ -226,3 +226,4 @@ def run_filter(filter, kernel, filetype, damp_factor = 1, sigma = 2):
     messagebox.showinfo("Message", f"The filtered image has been saved in the IMAGES folder with the name {filter}_img.png. Make sure to transport it to your own storage because the file will be lost in the next execution of the filter. ")
 
 
+

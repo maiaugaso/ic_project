@@ -1,6 +1,9 @@
 from tkinter import *
 from tkinter import ttk
 from filters import run_filter, run_wavelet
+from wecs import run_wecs
+from ecs import run_ecs
+from taad import run_taad
 
 window = Tk()
 
@@ -133,6 +136,37 @@ def open_filters_window():
     b_wvt = Button(filters, text="Wavelet Filter", bg = '#86a3c3', width=25, font=('Verdana 10'), command=wavelet_filter_execution_window)
     b_wvt.grid(column=2, row=2, pady=5, padx=8)
 
+#----------------------------------------------------------------------------
+#-----------------------change detection execution window--------------------
+#----------------------------------------------------------------------------
+
+def open_change_execution_window(method):
+    change= Toplevel(window)
+    change.title(method)
+    change['background']='#b6cec7'
+
+    lbl = Label(change, justify='left', anchor='w', wraplengt=500, 
+                text="The image time series will be retrieved from the folder IMAGE_SERIES, which must contain ONLY the desired time series. They all must be from the same exact area and dimension. The method works significantly better for a 10+ image time series.\nEach image must be an individual .tif file with the bands you would like to execute the method on. The bands are combined as the Euclidian Norm, yielding single-channel images.\n Additionally", 
+                font=("Verdana 10"), background='#b6cec7')
+    lbl.grid(column=0, row=0, sticky=W)
+
+    lbl2 = Label(change, wraplengt=500, text="It may take a while to finish running, please be patient.", 
+                font=("Verdana 10 bold"), background='#b6cec7')
+    lbl2.grid(column=0, row=1, pady=5)
+
+    lbl3 = Label(change, wraplengt=500, text="Make sure all conditions are met.", 
+                font=("Verdana 11 bold"), background='#b6cec7', fg='red')
+    lbl3.grid(column=0, row=2, pady=5)
+
+    if method == 'WECS':
+        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_wecs())
+        b_run.grid(column=0, row=3, pady=10)
+    if method == 'ECS':
+        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_ecs())
+        b_run.grid(column=0, row=3, pady=10)
+    if method == 'TAAD':
+        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_taad())
+        b_run.grid(column=0, row=3, pady=10)
 
 
 #----------------------------------------------------------------------------
@@ -144,21 +178,19 @@ def open_change_window():
     change_options['background']='#b6cec7'
 
     lbl = Label(change_options, justify='left', anchor='w', wraplengt=500, 
-                text="Choose which change detection method you would like to execute. The image time series will be retrieved from the folder IMAGE_SERIES. These images must be all from the same exact area and dimension. The method works significantly better for a 10+ image time series. ", 
+                text="Choose which change detection method you would like to execute. ", 
                 font=("Verdana 10"), background='#b6cec7')
     lbl.grid(column=0, row=0, sticky=W)
 
     #buttons
-    b_wecs = Button(change_options, text="WECS", bg = '#86a3c3', width=20, font=('Verdana 10'))
+    b_wecs = Button(change_options, text="WECS", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: open_change_execution_window("WECS"))
     b_wecs.grid(column=0, row=1, pady=5)
 
-    b_ecs = Button(change_options, text="ECS", bg = '#86a3c3', width=20, font=('Verdana 10'))
+    b_ecs = Button(change_options, text="ECS", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: open_change_execution_window("ECS"))
     b_ecs.grid(column=0, row=2, pady=5)
 
-    b_taad = Button(change_options, text="TAAD", bg = '#86a3c3', width=20, font=('Verdana 10'))
+    b_taad = Button(change_options, text="TAAD", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: open_change_execution_window("TAAD"))
     b_taad.grid(column=0, row=3, pady=5)
-
-
 
 
 #----------------------------------------------------------------------------
