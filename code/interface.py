@@ -4,6 +4,7 @@ from filters import run_filter, run_wavelet
 from wecs import run_wecs
 from ecs import run_ecs
 from taad import run_taad
+from asf import fetch_asf
 
 window = Tk()
 
@@ -16,33 +17,43 @@ def wavelet_filter_execution_window():
     filter_exec.title(f"{filter} Filter")
     filter_exec['background']='#b6cec7'
 
-    lbl = Label(filter_exec, justify='left', anchor='w', wraplengt=600, text="Fill in the empty spaces. The image in which the filter will be applied must be saved in the folder IMAGES and with the name \'img.*' where * corresponds to the file type. It may take a little while to run, be patient.", 
+    lbl = Label(filter_exec, justify='left', anchor='w', wraplengt=600, text="Fill in the empty spaces. The image in which the filter will be applied must be of ypes png or tif. If it is a multichannel tif the Euclidian Norm will be applied to yield a single channel image.", 
                 font=('Verdana 11'), background='#b6cec7')
     lbl.grid(columnspan=2, row=0, sticky = W)
 
     lbl_J = Label(filter_exec, justify='left', anchor='e',text="Decomposition levels (J):", font=('Verdana 11 bold'), background='#b6cec7')
     lbl_J.grid(column=0, row=2, sticky=E)
-    J = Entry(filter_exec, justify='left')
+    J = Entry(filter_exec, justify='left', width=50)
     J.grid(column=1, row=2, sticky=W)
 
     lbl_w = Label(filter_exec, justify='left', anchor='e',text="Wavelet:", font=('Verdana 11 bold'), background='#b6cec7')
     lbl_w.grid(column=0, row=3, sticky=E)
-    w = ttk.Combobox(filter_exec, state="readonly",values=["db1", "db2", "haar", "sym2", "sym4", "coif1"])
+    w = ttk.Combobox(filter_exec, state="readonly",values=["db1", "db2", "haar", "sym2", "sym4", "coif1"], width=47)
     w.grid(column=1, row=3, sticky=W)
 
     lbl_thresh = Label(filter_exec, justify='left', anchor='e',text="Threshold:", font=('Verdana 11 bold'), background='#b6cec7')
     lbl_thresh.grid(column=0, row=4, sticky=E)
-    thresh = ttk.Combobox(filter_exec, state="readonly",values=["hard", "soft"])
+    thresh = ttk.Combobox(filter_exec, state="readonly",values=["hard", "soft"], width=47)
     thresh.grid(column=1, row=4, sticky=W)
 
+    lbl_imgdir = Label(filter_exec, justify='left', anchor='e',text="Image path (png or tif):", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_imgdir.grid(column=0, row=5, sticky=E)
+    imgdir = Entry(filter_exec, justify='left', width=50)
+    imgdir.grid(column=1, row=5, sticky=W)
+
     lbl_img = Label(filter_exec, justify='left', anchor='e',text="Image Type:", font=('Verdana 11 bold'), background='#b6cec7')
-    lbl_img.grid(column=0, row=5, sticky=E)
-    img_type = ttk.Combobox(filter_exec, state="readonly",values=["png", "tif"])
-    img_type.grid(column=1, row=5, sticky=W)
+    lbl_img.grid(column=0, row=6, sticky=E)
+    img_type = ttk.Combobox(filter_exec, state="readonly",values=["png", "tif"], width=47)
+    img_type.grid(column=1, row=6, sticky=W)
+
+    lbl_out = Label(filter_exec, justify='left', anchor='e',text="Output directory:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_out.grid(column=0, row=7, sticky=E)
+    out = Entry(filter_exec, justify='left', width=50)
+    out.grid(column=1, row=7, sticky=W)
 
     b_run =  Button(filter_exec, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
-                    command=lambda: run_wavelet(img_type.get(), w.get(), thresh.get(), int(J.get())))
-    b_run.grid(column=1, row=6, pady=5, padx=8)
+                    command=lambda: run_wavelet(img_type.get(), w.get(), thresh.get(), int(J.get()), imgdir.get(), out.get()))
+    b_run.grid(column=1, row=8, pady=5, padx=8)
 
 def filter_execution_window(filter):
     filter_exec= Toplevel(window)
@@ -57,38 +68,49 @@ def filter_execution_window(filter):
     lbl_k.grid(column=0, row=1, sticky=E)
     lbl_k2 = Label(filter_exec, justify='left', anchor='e',text="Kernel Size:", font=('Verdana 11 bold'), background='#b6cec7')
     lbl_k2.grid(column=0, row=2, sticky=E)
-    kernel = Entry(filter_exec, justify='left')
+    kernel = Entry(filter_exec, justify='left', width=50)
     kernel.grid(column=1, row=2, sticky=W)
+
+    lbl_imgdir = Label(filter_exec, justify='left', anchor='e',text="Image path (png or tif):", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_imgdir.grid(column=0, row=3, sticky=E)
+    imgdir = Entry(filter_exec, justify='left', width=50)
+    imgdir.grid(column=1, row=3, sticky=W)
+
 
     if filter == 'Frost':
         lbl_df2 = Label(filter_exec, justify='left', anchor='e',text="Damp Factor:", font=('Verdana 11 bold'), background='#b6cec7')
         lbl_df2.grid(column=0, row=4, sticky=E)
-        damp_factor = Entry(filter_exec, justify='left')
+        damp_factor = Entry(filter_exec, justify='left', width=50)
         damp_factor.grid(column=1, row=4, sticky=W)
 
     if filter == 'Gaussian':
         lbl_sigma = Label(filter_exec, justify='left', anchor='e',text="Sigma:", font=('Verdana 11 bold'), background='#b6cec7')
         lbl_sigma.grid(column=0, row=4, sticky=E)
-        sigma = Entry(filter_exec, justify='left')
+        sigma = Entry(filter_exec, justify='left', width=50)
         sigma.grid(column=1, row=4, sticky=W)
     
     lbl_img = Label(filter_exec, justify='left', anchor='e',text="Image Type:", font=('Verdana 11 bold'), background='#b6cec7')
     lbl_img.grid(column=0, row=5, sticky=E)
-    img_type = ttk.Combobox(filter_exec, state="readonly",values=["png", "tif"])
+    img_type = ttk.Combobox(filter_exec, state="readonly",values=["png", "tif"], width=47)
     img_type.grid(column=1, row=5, sticky=W)
+
+    lbl_out = Label(filter_exec, justify='left', anchor='e',text="Output directory:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_out.grid(column=0, row=6, sticky=E)
+    out = Entry(filter_exec, justify='left', width=50)
+    out.grid(column=1, row=6, sticky=W)
 
     if filter == 'Frost':
         b_run =  Button(filter_exec, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
-                    command=lambda: run_filter(filter, int(kernel.get()), img_type.get(), damp_factor = int(damp_factor.get())))
-        b_run.grid(column=1, row=6, pady=5, padx=8)
+                    command=lambda: run_filter(filter, int(kernel.get()), img_type.get(), imgdir.get(), out.get(), damp_factor = int(damp_factor.get())))
+        b_run.grid(column=1, row=7, pady=5, padx=8)
     elif filter == "Gaussian":
         b_run =  Button(filter_exec, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
-                    command=lambda: run_filter(filter, int(kernel.get()), img_type.get(), sigma = int(sigma.get())))
-        b_run.grid(column=1, row=6, pady=5, padx=8)
+                    command=lambda: run_filter(filter, int(kernel.get()), img_type.get(), imgdir.get(), out.get(), sigma = int(sigma.get())))
+        b_run.grid(column=1, row=7, pady=5, padx=8)
     else:
         b_run =  Button(filter_exec, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
-                    command=lambda: run_filter(filter, int(kernel.get()), img_type.get()))
-        b_run.grid(column=1, row=6, pady=5, padx=8)
+                    command=lambda: run_filter(filter, int(kernel.get()), img_type.get(), imgdir.get(), out.get()))
+        b_run.grid(column=1, row=7, pady=5, padx=8)
 
 
 
@@ -146,27 +168,37 @@ def open_change_execution_window(method):
     change['background']='#b6cec7'
 
     lbl = Label(change, justify='left', anchor='w', wraplengt=500, 
-                text="The image time series will be retrieved from the folder IMAGE_SERIES, which must contain ONLY the desired time series. They all must be from the same exact area and dimension. The method works significantly better for a 10+ image time series.\nEach image must be an individual .tif file with the bands you would like to execute the method on. The bands are combined as the Euclidian Norm, yielding single-channel images.\n Additionally", 
+                text="The image time series will be retrieved from the folder identified in the \'Image series path:\' space, which must be a folder containing ONLY the desired time series. They all must be from the same exact area and dimension. The method works significantly better for a 10+ image time series.\nEach image must be an individual .tif file with the bands you would like to execute the method on. The bands are combined as the Euclidian Norm, yielding single-channel images. The output directory is where the change maps will be stored.\n ", 
                 font=("Verdana 10"), background='#b6cec7')
-    lbl.grid(column=0, row=0, sticky=W)
+    lbl.grid(columnspan=2, row=0, sticky=W)
 
     lbl2 = Label(change, wraplengt=500, text="It may take a while to finish running, please be patient.", 
                 font=("Verdana 10 bold"), background='#b6cec7')
-    lbl2.grid(column=0, row=1, pady=5)
+    lbl2.grid(columnspan=2, row=1, pady=5)
 
     lbl3 = Label(change, wraplengt=500, text="Make sure all conditions are met.", 
                 font=("Verdana 11 bold"), background='#b6cec7', fg='red')
-    lbl3.grid(column=0, row=2, pady=5)
+    lbl3.grid(columnspan=2, row=2, pady=5)
+
+    lbl_seriesdir = Label(change, justify='left', anchor='e',text="Image series path:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_seriesdir.grid(column=0, row=3, sticky=E)
+    seriesdir = Entry(change, justify='left', width=50)
+    seriesdir.grid(column=1, row=3, sticky=W)
+
+    lbl_out = Label(change, justify='left', anchor='e',text="Output directory:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_out.grid(column=0, row=4, sticky=E)
+    out = Entry(change, justify='left', width=50)
+    out.grid(column=1, row=4, sticky=W)
 
     if method == 'WECS':
-        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_wecs())
-        b_run.grid(column=0, row=3, pady=10)
+        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_wecs(seriesdir.get(), out.get()))
+        b_run.grid(column=0, row=5, pady=10)
     if method == 'ECS':
-        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_ecs())
-        b_run.grid(column=0, row=3, pady=10)
+        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_ecs(seriesdir.get(), out.get()))
+        b_run.grid(column=0, row=5, pady=10)
     if method == 'TAAD':
-        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_taad())
-        b_run.grid(column=0, row=3, pady=10)
+        b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_taad(seriesdir.get(), out.get()))
+        b_run.grid(column=0, row=5, pady=10)
 
 
 #----------------------------------------------------------------------------
@@ -194,6 +226,88 @@ def open_change_window():
 
 
 #----------------------------------------------------------------------------
+#--------------------image obtention execution windows-----------------------
+#----------------------------------------------------------------------------
+
+def open_asf():
+    asf= Toplevel(window)
+    asf.title("ASF Search API")
+    asf['background']='#b6cec7'
+
+    lbl = Label(asf, justify='left', anchor='w', wraplength= 500,
+                text="To use this API it is necessary to have an account on NASA's Earth Data (https://urs.earthdata.nasa.gov/). Fill in the empty spaces.\nThis API retrieves an entire scene containing the area of interest, this means files can be very heavy (1-2GB) and download will take a while. ", 
+                font=("Verdana 10"), background='#b6cec7')
+    lbl.grid(columnspan=2, row=0, sticky=W)
+
+    lbl = Label(asf, justify='left',  wraplength=500,
+                text="The authentication token can be retrieved from you personal account on the website above.", 
+                font=("Verdana 8"), background='#b6cec7')
+    lbl.grid(columnspan=2, row=1)
+    lbl_token = Label(asf, justify='left', anchor='e',text="Authentication Token:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_token.grid(column=0, row=2, sticky=E)
+    token = Entry(asf, justify='left', width=50)
+    token.grid(column=1, row=2, sticky=W)
+
+    lbl_startdate = Label(asf, justify='left', anchor='e',text="Start date (YYYY-MM-DD):", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_startdate.grid(column=0, row=3, sticky=E)
+    startdate = Entry(asf, justify='left', width=50)
+    startdate.grid(column=1, row=3, sticky=W)
+
+    lbl_enddate = Label(asf, justify='left', anchor='e',text="End date (YYYY-MM-DD):", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_enddate.grid(column=0, row=4, sticky=E)
+    enddate = Entry(asf, justify='left', width=50)
+    enddate.grid(column=1, row=4, sticky=W)
+
+    lbl2 = Label(asf, justify='left', wraplength=500,
+                text="Maximum number of images to retrieve, from 1 to 10. The highest the number, the longer it will take.", 
+                font=("Verdana 8"), background='#b6cec7')
+    lbl2.grid(columnspan=2, row=5)
+    lbl_max = Label(asf, justify='left', anchor='e',text="Max images:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_max.grid(column=0, row=6, sticky=E)
+    max = Entry(asf, justify='left', width=50)
+    max.grid(column=1, row=6, sticky=W)
+
+    lbl_out = Label(asf, justify='left', anchor='e',text="Output directory:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_out.grid(column=0, row=7, sticky=E)
+    out = Entry(asf, justify='left', width=50)
+    out.grid(column=1, row=7, sticky=W)
+    
+    lbl2 = Label(asf, justify='left', wraplength=500,
+                text="Fill the area of interest as a WKT Polygon. It must be in the following format. The components lat_i and long_i are the coordinates for a vertex in the polygon. It is recommended to follow a rectangle. The last component of the polygon below is the same as the first so that the polygon vertices “close”. \nThis way If you follow a rectangle, there must be 5 components of lat long. Pay attention to the double brackets.\nIt is easy to generate one through the website http://arthur-e.github.io/Wicket/sandbox-gmaps3.html \nExample: POLYGON((lat_1 long_1, lat_2 long_2, …, la_tn long_n, lat_1 long_1))", 
+                font=("Verdana 8"), background='#b6cec7')
+    lbl2.grid(columnspan=2, row=8)
+    lbl_poly = Label(asf, justify='left', anchor='e',text="Area of interest:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_poly.grid(column=0, row=9, sticky=E)
+    poly = Entry(asf, justify='left', width=50)
+    poly.grid(column=1, row=9, sticky=W)
+
+    b_run =  Button(asf, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
+                    command=lambda: fetch_asf(token.get(), poly.get(), startdate.get(), enddate.get(), int(max.get()), out.get()))
+    b_run.grid(column=1, row=10, pady=5, padx=8)
+
+
+#----------------------------------------------------------------------------
+#--------------------image obtention selection window------------------------
+#----------------------------------------------------------------------------
+def open_obtetion_window():
+    obtention= Toplevel(window)
+    obtention.title("Sentinel-1 Image Obtention")
+    obtention['background']='#b6cec7'
+
+    lbl = Label(obtention, justify='left', anchor='w', wraplengt=500, 
+                text="Choose which API would like to retrieve an image from. ", 
+                font=("Verdana 10"), background='#b6cec7')
+    lbl.grid(column=0, row=0, sticky=W)
+
+    #buttons
+    b_gee = Button(obtention, text="Google Earth Engine", bg = '#86a3c3', width=20, font=('Verdana 10'))
+    b_gee.grid(column=0, row=1, pady=5)
+
+    b_asf = Button(obtention, text="ASF Search", bg = '#86a3c3', width=20, font=('Verdana 10'), command=open_asf)
+    b_asf.grid(column=0, row=2, pady=5)
+
+
+#----------------------------------------------------------------------------
 #----------------------------main window-------------------------------------
 #----------------------------------------------------------------------------
 window.title("SAR Image Analysis Tools")
@@ -210,7 +324,7 @@ b_filters.grid(column=0, row=1, pady=5)
 b_change = Button(window, text="Change Detection", bg = '#86a3c3', width=20, font=('Verdana 10'), command=open_change_window)
 b_change.grid(column=0, row=2, pady=5)
 
-b_imgobt = Button(window, text="Image obtention", bg = '#86a3c3', width=20, font=('Verdana 10'))
+b_imgobt = Button(window, text="Image obtention", bg = '#86a3c3', width=20, font=('Verdana 10'), command=open_obtetion_window)
 b_imgobt.grid(column=0, row=3, pady=5)
 
 window.mainloop()

@@ -6,12 +6,12 @@ from PIL import Image
 import matplotlib.image
 from tkinter import messagebox
 import cv2
-from skimage.restoration import (denoise_wavelet, estimate_sigma)
-
+from skimage.restoration import (estimate_sigma)
+import os.path
 
 def lee_filter(im, kernel = 3):
     if kernel % 2 == 0:
-        messagebox.showinfo("ERROR", "Kernel MUST be an ODD number.")
+        messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
 
     pad = int((kernel-1)/2)
@@ -38,7 +38,7 @@ def lee_filter(im, kernel = 3):
 
 def kuan_filter(im, kernel = 3):
     if kernel % 2 == 0:
-        messagebox.showinfo("ERROR", "Kernel MUST be an ODD number.")
+        messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
 
     pad = int((kernel-1)/2)
@@ -76,7 +76,7 @@ def local_weight_matrix(window, factor_a):
 
 def frost_filter(im, kernel = 3, damp_factor = 1):
     if kernel % 2 == 0:
-        messagebox.showinfo("ERROR", "Kernel MUST be an ODD number.")
+        messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
 
     pad = int((kernel-1)/2)
@@ -108,7 +108,7 @@ def frost_filter(im, kernel = 3, damp_factor = 1):
 
 def median_filter(img, kernel):
     if kernel % 2 == 0:
-        messagebox.showinfo("ERROR", "Kernel MUST be an ODD number.")
+        messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
 
     denoised = cv2.medianBlur(img, kernel)
@@ -117,7 +117,7 @@ def median_filter(img, kernel):
 
 def mean_filter(img, kernel):
     if kernel % 2 == 0:
-        messagebox.showinfo("ERROR", "Kernel MUST be an ODD number.")
+        messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
 
     denoised = cv2.blur(img, (kernel, kernel))
@@ -126,7 +126,7 @@ def mean_filter(img, kernel):
 
 def gaussian_filter(img, kernel, sigma = 2):
     if kernel % 2 == 0:
-        messagebox.showinfo("ERROR", "Kernel MUST be an ODD number.")
+        messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
 
     denoised = cv2.GaussianBlur(img, (kernel, kernel), sigma)
@@ -148,21 +148,40 @@ def wavelet_filter(img, J = 2, w = "db2", thresh = "soft"):
 
     return denoised
 
-def run_wavelet(filetype, wvt, thresh, J):
+def verify_directory(input, output):
+    inp = os.path.isfile(input)
+    out = os.path.isdir(output)
+
+    if (inp == True) and (out == False):
+        messagebox.showerror("ERROR", "Output file directory is invalid.")
+        return False
+    if (inp == False) and (out == True):
+        messagebox.showerror("ERROR", "Input file directory is invalid.")
+        return False
+    if (inp == False) and (out == False):
+        messagebox.showerror("ERROR", "Both input and output file directories are invalid.")
+        return False
+
+    return True
+
+def run_wavelet(filetype, wvt, thresh, J, input, output):
+    if verify_directory(input, output) == False:
+        return
+
     img = []
 
     if filetype == 'png':
-        img = np.asarray(Image.open("code/IMAGES/img.png").convert("L"))
+        img = np.asarray(Image.open(input).convert("L"))
     elif filetype == 'tif':
-        img_tiff = gdal.Open("code/IMAGES/img.tif")
+        img_tiff = gdal.Open(input)
         img_array = img_tiff.ReadAsArray().astype(float)
         img = np.nansum(np.square(np.dstack((img_array))), axis = 2)
         plt.imshow(img)
         plt.show()
 
-    denoised = wavelet_filter(img, J, 'haar', thresh)
+    denoised = wavelet_filter(img, J, wvt, thresh)
 
-    matplotlib.image.imsave(f'code/IMAGES/Wavelet_img.png', np.asarray(denoised))
+    matplotlib.image.imsave(f'{output}/Wavelet_{wvt}_img.png', np.asarray(denoised), cmap = 'gray')
     fig = plt.figure()
 
     fig.add_subplot(1,2,1)
@@ -177,18 +196,19 @@ def run_wavelet(filetype, wvt, thresh, J):
 
     plt.show()
 
-    messagebox.showinfo("Message", f"The filtered image has been saved in the IMAGES folder with the name Wavelet_img.png. Make sure to transport it to your own storage space because the file will be lost in the next execution of the filter. ")
+    messagebox.showinfo("Message", f"The filtered image has been saved in the output directory {output} with the name Wavelet_{wvt}_img.png. Make sure to change the file name because it can be replaced in the next execution of the filter for this output directory. ")
 
 
-
-
-def run_filter(filter, kernel, filetype, damp_factor = 1, sigma = 2):
+def run_filter(filter, kernel, filetype, input, output, damp_factor = 1, sigma = 2):
+    if verify_directory(input, output) == False:
+        return
+    
     img = []
     denoised = []
     if filetype == 'png':
-        img = np.asarray(Image.open("code/IMAGES/img.png").convert("L"))
+        img = np.asarray(Image.open(input).convert("L"))
     elif filetype == 'tif':
-        img_tiff = gdal.Open("code/IMAGES/img.tif")
+        img_tiff = gdal.Open(input)
         img_array = img_tiff.ReadAsArray().astype(float)
         img = np.nansum(np.square(np.dstack((img_array))), axis = 2)
 
@@ -208,7 +228,7 @@ def run_filter(filter, kernel, filetype, damp_factor = 1, sigma = 2):
     if denoised == []:
         return
 
-    matplotlib.image.imsave(f'code/IMAGES/{filter}_img.png', np.asarray(denoised))
+    matplotlib.image.imsave(f'{output}/{filter}_img.png', np.asarray(denoised))
     fig = plt.figure()
 
     fig.add_subplot(1,2,1)
@@ -223,7 +243,7 @@ def run_filter(filter, kernel, filetype, damp_factor = 1, sigma = 2):
 
     plt.show()
 
-    messagebox.showinfo("Message", f"The filtered image has been saved in the IMAGES folder with the name {filter}_img.png. Make sure to transport it to your own storage because the file will be lost in the next execution of the filter. ")
+    messagebox.showinfo("Message", f"The filtered image has been saved in the output directory {output} with the name {filter}_img.png. Make sure to change the file name because it can be replaced in the next execution of the filter for this output directory. ")
 
 
 

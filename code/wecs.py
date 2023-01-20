@@ -1,18 +1,13 @@
 import matplotlib.pyplot as plt
 from osgeo import gdal
 import numpy as np
-from  matplotlib.colors import LinearSegmentedColormap
 import skimage
 import pywt
 import matplotlib.colors
 import matplotlib.image
 from PIL import Image
-import glob 
 import cv2 
 import matplotlib.patches
-from sklearn.metrics import f1_score
-from sklearn.metrics import cohen_kappa_score
-from sklearn.cluster import KMeans
 import os
 from tkinter import messagebox
 
@@ -121,13 +116,12 @@ def change_map_otsu(R):
 
     return binary_mask
 
-def read_time_series():
+def read_time_series(input):
     images = []
 
     #Reading images
-    directory = 'code\IMAGE_SERIES'
-    for file in os.listdir(directory):
-        im = gdal.Open(os.path.join(directory, file))
+    for file in os.listdir(input):
+        im = gdal.Open(os.path.join(input, file))
         imarray = im.ReadAsArray().astype(float)
         im_comb = (np.nansum(np.square(np.dstack(scale(imarray))), axis = 2))
         images.append(im_comb)
@@ -175,10 +169,29 @@ def show_results(R, otsu, k3, k4):
 
     plt.show()
 
-def run_wecs():
-    images = read_time_series()
+def verify_directory(input, output):
+    inp = os.path.isdir(input)
+    out = os.path.isdir(output)
+
+    if (inp == True) and (out == False):
+        messagebox.showerror("ERROR", "Output file directory is invalid.")
+        return False
+    if (inp == False) and (out == True):
+        messagebox.showerror("ERROR", "Input file directory is invalid.")
+        return False
+    if (inp == False) and (out == False):
+        messagebox.showerror("ERROR", "Both input and output file directories are invalid.")
+        return False
+
+    return True
+
+def run_wecs(input, output):
+    if verify_directory(input, output) == False:
+        return
+
+    images = read_time_series(input)
     if len(np.shape(images))!=3:
-        messagebox.showinfo("Images MUST have same dimensions.")
+        messagebox.showerror("Images MUST have same dimensions.")
         return
 
     show_images(images)
@@ -208,9 +221,9 @@ def run_wecs():
     show_results(R, cm_otsu, cm_kmeans_3, cm_kmeans_4)
 
     cmap = matplotlib.colors.ListedColormap(['lightgreen', 'red'])
-    matplotlib.image.imsave('code/CHANGE_MAPS/WECS/change_map_otsu.png', np.asarray(cm_otsu), cmap=cmap)
-    matplotlib.image.imsave('code/CHANGE_MAPS/WECS/change_map_kmeans_3.png', np.asarray(cm_kmeans_3), cmap=cmap)
-    matplotlib.image.imsave('code/CHANGE_MAPS/WECS/change_map_kmeans_4.png', np.asarray(cm_kmeans_4, cmap=cmap))
-    matplotlib.image.imsave('code/CHANGE_MAPS/WECS/correlation_matrix_R.png', np.asarray(R), cmap='rainbow')
+    matplotlib.image.imsave(f'{output}/change_map_otsu.png', np.asarray(cm_otsu), cmap=cmap)
+    matplotlib.image.imsave(f'{output}/change_map_kmeans_3.png', np.asarray(cm_kmeans_3), cmap=cmap)
+    matplotlib.image.imsave(f'{output}/change_map_kmeans_4.png', np.asarray(cm_kmeans_4, cmap=cmap))
+    matplotlib.image.imsave(f'{output}/correlation_matrix_R.png', np.asarray(R), cmap='rainbow')
 
-    messagebox.showinfo("MESSAGE", "The change maps and correlation matrix have been saved in the folder \'code/CHANGE_MAPS/WECS\'. Make sure to transport it to your own storage because the files will be lost in the next execution of the method.")
+    messagebox.showinfo("MESSAGE", "The change maps and correlation matrix have been saved in the folder {output}. Make sure to rename all files because they may be replaced in the next execution of the method with the same output.")
