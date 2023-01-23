@@ -5,6 +5,7 @@ from wecs import run_wecs
 from ecs import run_ecs
 from taad import run_taad
 from asf import fetch_asf
+from gee import fetch_gee
 
 window = Tk()
 
@@ -234,12 +235,14 @@ def open_asf():
     asf.title("ASF Search API")
     asf['background']='#b6cec7'
 
-    lbl = Label(asf, justify='left', anchor='w', wraplength= 500,
-                text="To use this API it is necessary to have an account on NASA's Earth Data (https://urs.earthdata.nasa.gov/). Fill in the empty spaces.\nThis API retrieves an entire scene containing the area of interest, this means files can be very heavy (1-2GB) and download will take a while. ", 
+    asf.geometry('550x450')
+
+    lbl = Label(asf, justify='left', anchor='w', wraplength= 540,
+                text="To use this API it is necessary to have an account on NASA's Earth Data (https://urs.earthdata.nasa.gov/). Fill in the empty spaces.\nThis API retrieves an entire scene containing the area of interest, this means files can be very heavy (1-2GB) and download will take a while.\n ", 
                 font=("Verdana 10"), background='#b6cec7')
     lbl.grid(columnspan=2, row=0, sticky=W)
 
-    lbl = Label(asf, justify='left',  wraplength=500,
+    lbl = Label(asf, justify='left',  wraplength=540,
                 text="The authentication token can be retrieved from you personal account on the website above.", 
                 font=("Verdana 8"), background='#b6cec7')
     lbl.grid(columnspan=2, row=1)
@@ -258,7 +261,7 @@ def open_asf():
     enddate = Entry(asf, justify='left', width=50)
     enddate.grid(column=1, row=4, sticky=W)
 
-    lbl2 = Label(asf, justify='left', wraplength=500,
+    lbl2 = Label(asf, justify='left', wraplength=540,
                 text="Maximum number of images to retrieve, from 1 to 10. The highest the number, the longer it will take.", 
                 font=("Verdana 8"), background='#b6cec7')
     lbl2.grid(columnspan=2, row=5)
@@ -272,7 +275,7 @@ def open_asf():
     out = Entry(asf, justify='left', width=50)
     out.grid(column=1, row=7, sticky=W)
     
-    lbl2 = Label(asf, justify='left', wraplength=500,
+    lbl2 = Label(asf, justify='left', wraplength=540,
                 text="Fill the area of interest as a WKT Polygon. It must be in the following format. The components lat_i and long_i are the coordinates for a vertex in the polygon. It is recommended to follow a rectangle. The last component of the polygon below is the same as the first so that the polygon vertices “close”. \nThis way If you follow a rectangle, there must be 5 components of lat long. Pay attention to the double brackets.\nIt is easy to generate one through the website http://arthur-e.github.io/Wicket/sandbox-gmaps3.html \nExample: POLYGON((lat_1 long_1, lat_2 long_2, …, la_tn long_n, lat_1 long_1))", 
                 font=("Verdana 8"), background='#b6cec7')
     lbl2.grid(columnspan=2, row=8)
@@ -284,6 +287,68 @@ def open_asf():
     b_run =  Button(asf, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
                     command=lambda: fetch_asf(token.get(), poly.get(), startdate.get(), enddate.get(), int(max.get()), out.get()))
     b_run.grid(column=1, row=10, pady=5, padx=8)
+
+def open_gee():
+    gee= Toplevel(window)
+    gee.title("Google Earth Engine API")
+    gee['background']='#b6cec7'
+
+    lbl = Label(gee, justify='left', anchor='w', wraplength= 540,
+                text="To use this API it is necessary to have an account on Google Earth Engine and local computer installation of the API (https://earthengine.google.com/). Fill in the empty spaces.\nThis API retrieves a single tif image of the area specified in the GEOJSON txt file. If this area is too big, the image might not download due to the limit of the file size set by the API. \nIt will be downloaded to a folder in your personal Google Drive, that is, the account in which your GEE is connected to. Download may take a while.\nOnce you click run, a window will appear from the Google Earth Engine Authenticator, where you need to confirm your email. ", 
+                font=("Verdana 10"), background='#b6cec7')
+    lbl.grid(columnspan=2, row=0, sticky=W)
+
+    lbl_startdate = Label(gee, justify='left', anchor='e',text="Start date (YYYY-MM-DD):", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_startdate.grid(column=0, row=1, sticky=E)
+    startdate = Entry(gee, justify='left', width=50)
+    startdate.grid(column=1, row=1, sticky=W)
+
+    lbl_enddate = Label(gee, justify='left', anchor='e',text="End date (YYYY-MM-DD):", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_enddate.grid(column=0, row=2, sticky=E)
+    enddate = Entry(gee, justify='left', width=50)
+    enddate.grid(column=1, row=2, sticky=W)
+
+    lbl_orbit = Label(gee, justify='left', anchor='e',text="Orbit:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_orbit.grid(column=0, row=3, sticky=E)
+    orbit = ttk.Combobox(gee, state="readonly",values=["ASCENDING", "DESCENDING"], width=47)
+    orbit.grid(column=1, row=3, sticky=W)
+
+    lbl2 = Label(gee, justify='left',  wraplength=540,
+                text="Name of the folder in your Google Drive that the image will be saved. Can be an existing one or a new one, in which it will be created.", 
+                font=("Verdana 8"), background='#b6cec7')
+    lbl2.grid(columnspan=2, row=4)
+    lbl_folder = Label(gee, justify='left', anchor='e',text="Folder name:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_folder.grid(column=0, row=5, sticky=E)
+    folder = Entry(gee, justify='left', width=50)
+    folder.grid(column=1, row=5, sticky=W)
+
+    VV = IntVar()
+    VH = IntVar()
+    HV = IntVar()
+    HH = IntVar()
+    lbl_bands = Label(gee, justify='left', anchor='e',text="Select bands:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_bands.grid(column=0, row=6, sticky=E)
+    VV_ = Checkbutton(gee, text='VV',variable=VV, onvalue=1, offvalue=0, background='#b6cec7')
+    VV_.grid(column=1, row=6, sticky=W)
+    VH_ = Checkbutton(gee, text='VH',variable=VH, onvalue=1, offvalue=0, background='#b6cec7')
+    VH_.grid(column=1, row=7, sticky=W)
+    HV_ = Checkbutton(gee, text='HV',variable=HV, onvalue=1, offvalue=0, background='#b6cec7')
+    HV_.grid(column=1, row=8, sticky=W)
+    HH_ = Checkbutton(gee, text='HH',variable=HH, onvalue=1, offvalue=0, background='#b6cec7')
+    HH_.grid(column=1, row=9, sticky=W)
+
+    lbl3 = Label(gee, justify='left',  wraplength=540,
+                text="The area of interest must be a Polygon in GEOJSON format, saved in a .txt file. You will provide the path to this file.\nYou can easily generate one through the website http://geojson.io/#map=2/20.0/0.0 and copy it into a .txt file.", 
+                font=("Verdana 8"), background='#b6cec7')
+    lbl3.grid(columnspan=2, row=10)
+    lbl_aoi = Label(gee, justify='left', anchor='e',text="Area of interest path:", font=('Verdana 11 bold'), background='#b6cec7')
+    lbl_aoi.grid(column=0, row=11, sticky=E)
+    aoi = Entry(gee, justify='left', width=50)
+    aoi.grid(column=1, row=11, sticky=W)
+
+    b_run =  Button(gee, text="Run", bg = '#86a3c3', width=25, font=('Verdana 10'), 
+                    command=lambda: fetch_gee(startdate.get(), enddate.get(), aoi.get(), orbit.get(), [VV.get(), VH.get(), HV.get(), HH.get()], folder.get()))
+    b_run.grid(column=1, row=12, pady=5, padx=8)
 
 
 #----------------------------------------------------------------------------
@@ -300,7 +365,7 @@ def open_obtetion_window():
     lbl.grid(column=0, row=0, sticky=W)
 
     #buttons
-    b_gee = Button(obtention, text="Google Earth Engine", bg = '#86a3c3', width=20, font=('Verdana 10'))
+    b_gee = Button(obtention, text="Google Earth Engine", bg = '#86a3c3', width=20, font=('Verdana 10'), command=open_gee)
     b_gee.grid(column=0, row=1, pady=5)
 
     b_asf = Button(obtention, text="ASF Search", bg = '#86a3c3', width=20, font=('Verdana 10'), command=open_asf)
