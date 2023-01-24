@@ -10,34 +10,60 @@ import matplotlib.patches
 import os
 from tkinter import messagebox
 import os.path
-
+import numba
 
 def scale(im):
     scaled = (im - np.nanmin(im))/(np.nanmax(im))
     return scaled
 
+@numba.jit(nopython=True, parallel=True, cache=True)
 def calculate_dmatrices(images, mean_image):
     n = len(images)
-    d_matrices = []
+    d_matrices = np.empty((n, *images[0].shape))
 
-    for i in range(0, n):
-        norm = np.linalg.norm(images[i])
-        d_i = np.square(images[i]/norm - mean_image)
-        d_matrices.append(d_i)
+    for i in numba.prange(n):
+        d_matrices[i] = np.square(images[i] - mean_image)
 
-    return np.array(d_matrices)
+    return d_matrices
 
-def calculate_R(d_matrices, d_vector):
-    h,w = np.shape(d_matrices[0])
-    R = np.zeros((h,w))
+@numba.jit(nopython=True, parallel=True, cache=True)
+def calculate_R(tensor, vector):
+    h, w, d = tensor.shape
+    corr = np.zeros((h, w))
+    vector_mean = 0
+    vector_std = 0
 
-    for i in range(0, h):
-        for j in range(0, w):
-            dij = d_matrices[:,i,j]
-            rij = np.corrcoef(dij, d_vector)[0,1]
-            R[i,j] = abs(rij)
+    for k in range(d):
+        vector_mean += vector[k]
+        vector_std += vector[k] * vector[k]
 
-    return R
+    vector_mean /= d
+    vector_std = vector_std / d - vector_mean * vector_mean
+    vector_std = vector_std**0.5
+
+    for i in numba.prange(h):
+        for j in numba.prange(w):
+            mean = 0
+            std = 0
+
+            for k in range(d):
+                mean += tensor[i, j, k]
+                std += tensor[i, j, k] * tensor[i, j, k]
+
+            mean /= d
+            std = std / d - mean * mean
+            std = std**0.5
+
+            corr_ij = 0
+            for k in range(d):
+                corr_ij += (tensor[i, j, k] - mean) * (vector[k] - vector_mean)
+
+            corr_ij /= d
+            corr_ij /= std * vector_std
+
+            corr[i, j] = abs(corr_ij)
+
+    return corr
 
 def show_images(images):
     p = plt.figure()
@@ -158,10 +184,10 @@ def run_ecs(input, output):
     d_matrices = calculate_dmatrices(images, mean_image)
 
     #Overall change
-    d_vector = np.array(list(map(np.sum, d_matrices)))
+    d_vector = np.sum(d_matrices, axis=(1, 2))
 
     #Correlation matrix
-    R = calculate_R(d_matrices, d_vector)
+    R = calculate_R(d_matrices.T, d_vector).T
     plt.hist(R)
     plt.show()
 

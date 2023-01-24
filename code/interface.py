@@ -193,13 +193,13 @@ def open_change_execution_window(method):
 
     if method == 'WECS':
         b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_wecs(seriesdir.get(), out.get()))
-        b_run.grid(column=0, row=5, pady=10)
+        b_run.grid(column=1, row=5, pady=10)
     if method == 'ECS':
         b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_ecs(seriesdir.get(), out.get()))
-        b_run.grid(column=0, row=5, pady=10)
+        b_run.grid(column=1, row=5, pady=10)
     if method == 'TAAD':
         b_run = Button(change, text="Run", bg = '#86a3c3', width=20, font=('Verdana 10'), command=lambda: run_taad(seriesdir.get(), out.get()))
-        b_run.grid(column=0, row=5, pady=10)
+        b_run.grid(column=1, row=5, pady=10)
 
 
 #----------------------------------------------------------------------------
