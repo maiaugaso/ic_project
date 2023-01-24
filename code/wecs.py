@@ -112,7 +112,7 @@ def calculate_R(tensor, vector):
 
             corr_ij /= d
             corr_ij /= std * vector_std
-            
+
             corr[i, j] = abs(corr_ij)
 
     return corr
@@ -255,4 +255,4 @@ def run_wecs(input, output):
     matplotlib.image.imsave(f'{output}/change_map_kmeans_4.png', np.asarray(cm_kmeans_4), cmap=cmap)
     matplotlib.image.imsave(f'{output}/correlation_matrix_R.png', np.asarray(R), cmap='rainbow')
 
-    messagebox.showinfo("MESSAGE", "The change maps and correlation matrix have been saved in the folder {output}. Make sure to rename all files because they may be replaced in the next execution of the method with the same output.")
+    messagebox.showinfo("MESSAGE", f"The change maps and correlation matrix have been saved in the folder {output}. Make sure to rename all files because they may be replaced in the next execution of the method with the same output.")
