@@ -110,8 +110,12 @@ def median_filter(img, kernel):
     if kernel % 2 == 0:
         messagebox.showerror("ERROR", "Kernel MUST be an ODD number.")
         return []
-
-    denoised = cv2.medianBlur(img, kernel)
+    try:
+        denoised = cv2.medianBlur((img), kernel)
+    except:
+        img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+        denoised = cv2.medianBlur(cv2.convertScaleAbs(img), kernel)
+    
 
     return denoised
 
@@ -176,8 +180,6 @@ def run_wavelet(filetype, wvt, thresh, J, input, output):
         img_tiff = gdal.Open(input)
         img_array = img_tiff.ReadAsArray().astype(float)
         img = np.nansum(np.square(np.dstack((img_array))), axis = 2)
-        plt.imshow(img)
-        plt.show()
 
     denoised = wavelet_filter(img, J, wvt, thresh)
 
@@ -228,7 +230,7 @@ def run_filter(filter, kernel, filetype, input, output, damp_factor = 1, sigma =
     if denoised == []:
         return
 
-    matplotlib.image.imsave(f'{output}/{filter}_img.png', np.asarray(denoised))
+    matplotlib.image.imsave(f'{output}/{filter}_img.png', np.asarray(denoised), cmap = 'gray')
     fig = plt.figure()
 
     fig.add_subplot(1,2,1)

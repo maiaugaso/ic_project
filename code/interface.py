@@ -61,7 +61,7 @@ def filter_execution_window(filter):
     filter_exec.title(f"{filter} Filter")
     filter_exec['background']='#b6cec7'
 
-    lbl = Label(filter_exec, justify='left', anchor='w', wraplengt=600, text="Fill in the empty spaces. The image in which the filter will be applied must be saved in the folder IMAGES and with the name \'img.*' where * corresponds to the file type. It may take a little while to run, be patient.", 
+    lbl = Label(filter_exec, justify='left', anchor='w', wraplengt=600, text="Fill in the empty spaces. The image in which the filter will be applied must be a .png or .tif file. It may take a little while to run, be patient.", 
                 font=('Verdana 11'), background='#b6cec7')
     lbl.grid(columnspan=2, row=0, sticky = W)
 

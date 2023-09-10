@@ -153,6 +153,7 @@ def read_time_series(input):
         im = gdal.Open(os.path.join(input, file))
         imarray = im.ReadAsArray().astype(float)
         im_comb = (np.nansum(np.square(np.dstack(scale(imarray))), axis = 2))
+        print(f'{file}: {np.shape(im_comb)}')
         images.append(im_comb)
     
     images = np.asarray(images)
@@ -231,15 +232,18 @@ def run_wecs(input, output):
     mean_image = mean_image/norm
 
     #Wavelet images
+    print('mean image calculated')
     x_images = calculate_wavelet_images(images)
 
     #Squared deviations matrices
+    print('x images calculated')
     d_matrices = calculate_dmatrices(x_images, mean_image)
 
     #Overall change
     d_vector = np.sum(d_matrices, axis=(1, 2))
 
     #Correlation matrix
+    print('R calculating')
     R = calculate_R(d_matrices.T, d_vector).T
 
     #Binary maps
@@ -247,6 +251,7 @@ def run_wecs(input, output):
     cm_kmeans_3 = change_map_kmeans(R, 3)
     cm_kmeans_4 = change_map_kmeans(R, 4)
 
+    print('thresholding done')
     show_results(R, cm_otsu, cm_kmeans_3, cm_kmeans_4)
 
     cmap = matplotlib.colors.ListedColormap(['lightgreen', 'red'])
